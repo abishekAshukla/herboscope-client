@@ -1,0 +1,49 @@
+.main-div{
+    display: flex;
+    flex-direction: column;
+}
+
+.top-div{
+    display: flex;
+    flex-direction: row;
+}
+
+.select-div{
+    margin-right: 80px;
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-evenly;
+    align-items: center; 
+    background-color: white; 
+    height: 40vh; 
+    width: 30vh; 
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.select-btn{
+    width: 150px;
+    padding: 20px 0px;
+    border-radius: 4px;
+    background-color: rgb(0, 50, 0);
+    color: white;
+    border: none;
+    text-decoration: none;
+    transition: 0.3s;
+    font-size: larger;
+}
+
+#select-file{
+   display: none;
+}
+
+.select-btn:hover{
+    background-color: darkgreen;
+    cursor: pointer;
+}
+
+#select-image, #grey-image, #threshold-image{
+    height: 200px;
+    width: 200px;
+    margin: auto;
+}

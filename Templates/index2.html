@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        background-image: url('../Static/background.jpg');
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+      }
+    </style>
+    <link rel="stylesheet" href="../Static/design.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Herbs Identification</title>
+  </head>
+  <body>
+    <script>
+      function displayImage(event) {
+        const file = event.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            const img = document.createElement('img')
+            img.src = e.target.result
+            img.style.width = '100%'
+            document.getElementById('select-image').innerHTML = ''
+            document.getElementById('select-image').appendChild(img)
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+
+      function preprocess() {
+        const file = document.getElementById('select-file').files[0]
+        if (file) {
+          const formData = new FormData()
+          formData.append('file', file)
+          $.ajax({
+            url: '/preprocess/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              document.getElementById('grey-image').innerHTML =
+                '<img src="data:image/jpeg;base64,' +
+                response.grey_image +
+                '" style="width: 100%">'
+              document.getElementById('threshold-image').innerHTML =
+                '<img src="data:image/jpeg;base64,' +
+                response.threshold_image +
+                '" style="width: 100%">'
+            },
+            error: function (xhr, status, error) {
+              console.error(error)
+            },
+          })
+        } else {
+          alert('select the file first')
+        }
+      }
+
+      function prediction() {
+        const file = document.getElementById('select-file').files[0]
+        if (file) {
+          const formData = new FormData()
+          formData.append('file', file)
+          $.ajax({
+            url: '/prediction/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              var predicted_herb = response.predicted_herb
+              var execution_time = response.execution_time
+              var description
+
+              if (predicted_herb == '0') {
+                description =
+                  'Name: Alphinia Galanga \n\nUses: A. galanga is widely utilized in the preparation of Siddha \n and Ayurvedic preparations for several diseases including heart \n diseases, rheumatism, renal calculus, diabetes, hypertension, \n asthma,ulcer, bronchitis, inflammation, microbial infections,\n and chronic enteritis.\n\n'
+              } else if (predicted_herb == '1') {
+                description =
+                  'Name: Amaranthus Viridis \n\nUses: Amaranthus viridis widely distributed all over the world,\n growing under a wide range of climatic conditions and has been \n utilized as a medicinal herb in traditional Ayurvedic medicine as \n antipyretic agents, also for the treatment of inflammation, \n ulcer, diabetic, asthma and hyperlipidemia.\n\n'
+              } else if (predicted_herb == '2') {
+                description =
+                  'Name: Azadirachta Indica \n\nUses: In the Indian subcontinent, neem leaves are used to treat \n dental and gastrointestinal disorders, malaria fevers, skin diseases,\n and as insects repellent, while the Balinese used neem leaves \n as a diuretic and for diabetes, headache, heartburn, and stimulating \n the appetite.\n\n'
+              } else if (predicted_herb == '3') {
+                description =
+                  'Name: Indian Mustard \n\nUses: Mustard is used as a food flavoring and as a forage crop.\n It has traditionally been used as an emetic and diuretic,\n as well as a topical treatment for inflammatory conditions \n such as arthritis and rheumatism.\n\n'
+              } else if (predicted_herb == '4') {
+                description =
+                  'Name: Mango \n\nUses: Mango leaves have antibacterial properties that help treat \n bacterial skin infections such as staph Infections and skin burns.\n The mango leaves contain essential properties and nutrients that \n help to heal the burns and scalds on the skin.\n\n'
+              } else if (predicted_herb == '5') {
+                description =
+                  'Name: Mint \n\nUses: Mint is a popular herb that may possess potential health \n benefits. This may include helping with digestive health,\n reducing allergic symptoms, and soothing common cold symptoms.\n\n'
+              } else if (predicted_herb == '6') {
+                description =
+                  'Name: Betel \nUses: Betel leaves are used as a stimulant, an antiseptic, and \n a breath-freshener, whereas areca nut was considered as \n aphrodisiac. Chewing habits of people have changed over time.\n The betel leaves are chewed together in a wrapped package \n along with areca nut and mineral slaked lime.\n\n'
+              } else if (predicted_herb == '7') {
+                description =
+                  'Name: Jamun \n\nUses: There are many Unani medications with antihyperlipidemic \n properties, and one of them is Jamun. It is a suitable source \n of iron and ascorbic acid, and it can even help with heart and \n liver problems. The dried and powdered seed of the Jamun \n is frequently used in India to manage diabetes\n\n'
+              } else if (predicted_herb == '8') {
+                description =
+                  'Name: Crape Jasmine \n\nUses: Nandyarvatam has a magical ability to cure eye disease \n and the milky juice of the leaves has anti inflammatory \n action and can be applied directly over the wounds.\n\n'
+              } else if (predicted_herb == '9') {
+                description =
+                  'Name: Fenugreek \n\nUses: fenugreek is promoted as a dietary supplement for diabetes,\n menstrual cramps, and other conditions and to stimulate \n milk production during breastfeeding.\n\n'
+              } else {
+                description = 'Please provide valid image'
+              }
+
+              const preElement = document.createElement('pre')
+              const divElement = document.getElementById('result-div')
+              preElement.textContent = description + execution_time
+              preElement.style.fontSize = '20px'
+              preElement.style.margin = '20px'
+              divElement.style.marginLeft = '30%'
+              divElement.style.marginRight = '5%'
+              divElement.style.backgroundColor = 'white'
+              divElement.innerHTML = ''
+              divElement.appendChild(preElement)
+            },
+            error: function (xhr, status, error) {
+              console.error(error)
+            },
+          })
+        } else {
+          alert('select the file first')
+        }
+      }
+    </script>
+    <div class="main-div">
+      <div class="top-div">
+        <div class="select-div">
+          <label for="select-file" class="select-btn">
+            <center>Select Image</center>
+            <input
+              id="select-file"
+              type="file"
+              onchange="displayImage(event)"
+            />
+          </label>
+          <button class="select-btn" onclick="preprocess()">Preprocess</button>
+          <button class="select-btn" onclick="prediction()">Evaluate</button>
+        </div>
+        <div id="select-image"></div>
+        <div id="grey-image"></div>
+        <div id="threshold-image"></div>
+      </div>
+      <div id="result-div"></div>
+    </div>
+    <!-- <div class="page-parent">
+      <div>
+        <button>Select</button>
+        <button>Preprocess</button>
+        <button>Evaluate</button>
+      </div>
+    </div> -->
+  </body>
+</html>

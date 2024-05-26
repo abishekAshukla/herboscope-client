@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        background-image: url('../Static/background.jpg');
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+      }
+    </style>
+    <link rel="stylesheet" href="../Static/design.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Herbs Identification</title>
+  </head>
+  <body>
+    <script>
+      function displayImage(event) {
+        const file = event.target.files[0]
+        if (file) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            const img = document.createElement('img')
+            img.src = e.target.result
+            img.style.width = '100%'
+            document.getElementById('select-image').innerHTML = ''
+            document.getElementById('select-image').appendChild(img)
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+
+      function preprocess() {
+        const file = document.getElementById('select-file').files[0]
+        if (file) {
+          const formData = new FormData()
+          formData.append('file', file)
+          $.ajax({
+            url: '/preprocess/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              document.getElementById('grey-image').innerHTML =
+                '<img src="data:image/jpeg;base64,' +
+                response.grey_image +
+                '" style="width: 100%">'
+              document.getElementById('threshold-image').innerHTML =
+                '<img src="data:image/jpeg;base64,' +
+                response.threshold_image +
+                '" style="width: 100%">'
+            },
+            error: function (xhr, status, error) {
+              console.error(error)
+            },
+          })
+        } else {
+          alert('select the file first')
+        }
+      }
+
+      async function getUniquePlantInfo(Id) {
+        try {
+          const uniqueId = parseInt(Id, 10)
+          const response = await fetch(
+            'https://herboscope.vercel.app/api/users/getinfo',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ uniqueId }),
+            }
+          )
+
+          if (!response.ok) {
+            throw new Error(
+              `Error: ${response.status} - ${response.statusText}`
+            )
+          }
+
+          const data = await response.json()
+          return data
+        } catch (error) {
+          console.error('Error fetching plant info:', error)
+          throw error
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem('name')
+        localStorage.removeItem('token')
+        window.location.href = '/Templates/login2.html'
+      }
+
+      function testPredict() {
+        getUniquePlantInfo('0')
+          .then((info) => {
+            console.log(info)
+          })
+          .catch((error) => console.error('Error:', error))
+      }
+
+      function prediction() {
+        const file = document.getElementById('select-file').files[0]
+        if (file) {
+          const formData = new FormData()
+          formData.append('file', file)
+          $.ajax({
+            url: '/prediction/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+              var predicted_herb = response.predicted_herb
+              var execution_time = response.execution_time
+              var description
+              getUniquePlantInfo(predicted_herb)
+                .then((info) => {
+                  description = info.description
+                  console.log(info)
+                })
+                .catch((error) => console.error('Error:', error))
+
+              const preElement = document.createElement('pre')
+              const divElement = document.getElementById('result-div')
+              preElement.textContent = description + execution_time
+              preElement.style.fontSize = '20px'
+              preElement.style.margin = '20px'
+              divElement.style.marginLeft = '30%'
+              divElement.style.marginRight = '5%'
+              divElement.style.backgroundColor = 'white'
+              divElement.innerHTML = ''
+              divElement.appendChild(preElement)
+            },
+            error: function (xhr, status, error) {
+              console.error(error)
+            },
+          })
+        } else {
+          alert('select the file first')
+        }
+      }
+    </script>
+    <div class="main-div">
+      <div class="top-div">
+        <div class="select-div">
+          <label for="select-file" class="select-btn">
+            <center>Select Image</center>
+            <input
+              id="select-file"
+              type="file"
+              onchange="displayImage(event)"
+            />
+          </label>
+          <button class="select-btn" onclick="preprocess()">Preprocess</button>
+          <button class="select-btn" onclick="prediction()">Evaluate</button>
+          <button class="select-btn" onclick="logout()">Logout</button>
+        </div>
+        <div id="select-image"></div>
+        <div id="grey-image"></div>
+        <div id="threshold-image"></div>
+      </div>
+      <div id="result-div"></div>
+    </div>
+  </body>
+</html>
